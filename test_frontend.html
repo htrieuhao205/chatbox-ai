@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Kết Nối AI System</title>
+    <style>
+        body { font-family: sans-serif; padding: 30px; background-color: #f4f4f9; }
+        h2 { color: #333; }
+        .container { display: flex; gap: 20px; }
+        .box { 
+            background: white; 
+            border: 1px solid #ddd; 
+            padding: 20px; 
+            border-radius: 8px; 
+            width: 45%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        input { 
+            padding: 10px; 
+            width: 70%; 
+            border: 1px solid #ccc; 
+            border-radius: 4px;
+        }
+        button { 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            font-weight: bold;
+        }
+        button:hover { background: #0056b3; }
+        .result { 
+            margin-top: 15px; 
+            padding: 10px; 
+            background: #e9ecef; 
+            border-radius: 4px; 
+            min-height: 40px;
+            color: #333;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+
+    <h2>🤖 Kiểm tra Kết nối Backend (Python) <-> Frontend (Web)</h2>
+    <p><i>Lưu ý: Đảm bảo server đang chạy (uvicorn main:app --reload)</i></p>
+
+    <div class="container">
+        
+        <div class="box">
+            <h3>💬 1. Test Chatbot AI</h3>
+            <p>Thử hỏi về thông tin trong file PDF bạn đã nạp.</p>
+            <input type="text" id="chat-input" placeholder="Ví dụ: Học phí ngành CNTT?">
+            <button onclick="testChat()">Gửi</button>
+            <div id="chat-res" class="result">Kết quả sẽ hiện ở đây...</div>
+        </div>
+
+        <div class="box">
+            <h3>📊 2. Test Dữ liệu Sinh viên</h3>
+            <p>Nhập mã SV bạn đã tạo trong Database.</p>
+            <input type="text" id="student-input" placeholder="Ví dụ: SV001" value="SV001">
+            <button onclick="testProgress()">Kiểm tra</button>
+            <div id="prog-res" class="result">Kết quả sẽ hiện ở đây...</div>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. Hàm Test Chatbot
+        async function testChat() {
+            const input = document.getElementById('chat-input').value;
+            const display = document.getElementById('chat-res');
+            
+            if (!input) { alert("Vui lòng nhập câu hỏi!"); return; }
+
+            display.innerHTML = "⏳ Đang suy nghĩ...";
+            display.className = "result";
+
+            try {
+                // Gọi API Chat của bạn
+                const response = await fetch("http://127.0.0.1:8000/api/v1/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: input })
+                });
+
+                const data = await response.json();
+                
+                if (data.reply) {
+                    display.innerHTML = "<strong>🤖 AI trả lời:</strong><br>" + data.reply;
+                    display.classList.add("success");
+                } else {
+                    display.innerText = "Lỗi: " + JSON.stringify(data);
+                    display.classList.add("error");
+                }
+            } catch (err) {
+                display.innerText = "❌ Lỗi kết nối: Server chưa bật hoặc bị chặn CORS.";
+                display.classList.add("error");
+                console.error(err);
+            }
+        }
+
+        // 2. Hàm Test Tiến độ
+        async function testProgress() {
+            const id = document.getElementById('student-input').value;
+            const display = document.getElementById('prog-res');
+            
+            display.innerHTML = "⏳ Đang tải...";
+            display.className = "result";
+
+            try {
+                // Gọi API Tiến độ của bạn
+                const response = await fetch(`http://127.0.0.1:8000/api/v1/progress/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error("Không tìm thấy sinh viên (404)");
+                }
+
+                const data = await response.json();
+                display.innerHTML = `
+                    <strong>✅ Tìm thấy SV:</strong> ${data.full_name} <br>
+                    <strong>GPA:</strong> ${data.gpa} <br>
+                    <strong>Tiến độ:</strong> ${data.total_program_progress_pct}%
+                `;
+                display.classList.add("success");
+
+            } catch (err) {
+                display.innerText = "❌ Lỗi: " + err.message;
+                display.classList.add("error");
+            }
+        }
+    </script>
+
+</body>
+</html>

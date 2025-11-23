@@ -1,0 +1,17 @@
+# Bỏ qua thư mục môi trường ảo (rất nặng)
+venv/
+env/
+
+# Bỏ qua file chứa API Key (RẤT QUAN TRỌNG - BẢO MẬT)
+.env
+
+# Bỏ qua các file rác của Python
+__pycache__/
+*.pyc
+
+# Bỏ qua Database (Nếu bạn muốn dữ liệu mỗi người tự tạo mới)
+# Nếu muốn nộp luôn dữ liệu mẫu thì xóa dòng dưới đi
+# *.db
+
+# Bỏ qua thư mục VS Code
+.vscode/
